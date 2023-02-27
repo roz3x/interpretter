@@ -6,6 +6,6 @@ features.
 
 - [x] expression evaluation
 - [ ] IO
-- [ ] IF statements
+- [X] IF statements
 - [ ] FOR loop
 - [ ] Functions

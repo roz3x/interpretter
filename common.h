@@ -26,6 +26,9 @@ struct statement {
     char* name; 
     int frame_index;
     int next_stmt , prev_stmt; 
+    
+    /* statements inside the if block or for block */
+    int statement_index; 
 };
 
 int makeUniqeStatement( int , char* , int);
@@ -40,3 +43,6 @@ int createVariableFrame(char* );
 
 int makeExpr(int lhs_frame_index, int op , int rhs_frame_index); 
 int makeDataFrameFromExpr(int);
+int makeIfStatement(int , int); 
+void registerFunctionName(char* name , int start_statement_index); 
+void callFunction(char* name); 

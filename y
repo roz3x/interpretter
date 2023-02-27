@@ -8,7 +8,7 @@
 
 %token INT FLOAT STRING ID OPENPR CLOSEPR OPENBR  CLOSEBR SEMICOLON 
 %token EQUALS CONST_INT CONST_STRING VARIABLE
-%token PLUS MINUS MUL DIV EXPR
+%token PLUS MINUS MUL DIV EXPR IF
 %start function_decl
 %union {
 	int ival; 
@@ -21,7 +21,7 @@
 %%
 
 function_decl : type name OPENPR CLOSEPR OPENBR  statements CLOSEBR  
-		{ printStatementChain($6); }
+		{ registerFunctionName($2, $6); }
 	
 name : ID  { $$=yylval.sval; } 
 
@@ -31,12 +31,15 @@ type : INT
 	| STRING
 	
 statements :  { $$ = -1; }
-	| stmt SEMICOLON statements { appendStatements($1 , $3) ; $$ = $1 ; }
+	| stmt  statements { appendStatements($1 , $2) ; $$ = $1 ; }
 
 stmt : /*could be nothing */        { $$ = makeUniqeStatement(-1 ,NULL, 0); }
-	| type name                     { $$ = makeUniqeStatement(0 , $2 , 0); } /* this will give it garabage value ? */
-	| type name EQUALS nc           { $$ = makeUniqeStatement(1 , $2 , $4); }
-	| name EQUALS nc  		        { $$ = makeUniqeStatement(2 , $1 , $3);}
+	| type name SEMICOLON                { $$ = makeUniqeStatement(0 , $2 , 0); } /* this will give it garabage value ? */
+	| type name EQUALS nc SEMICOLON      { $$ = makeUniqeStatement(1 , $2 , $4); }
+	| name EQUALS nc SEMICOLON	        { $$ = makeUniqeStatement(2 , $1 , $3);}
+	| IF OPENPR nc CLOSEPR OPENBR statements CLOSEBR       { $$ = makeIfStatement($3,$6); }
+	| SEMICOLON   { $$= makeUniqeStatement(-1 , NULL , 0 ); /* dummy statement */}
+
 
 nc : name {$$ = createVariableFrame($1); } /*DONE:  make this so that we get index of datafram from name , need trie for this */
 	| consts {$$ = $1;}
@@ -53,7 +56,7 @@ consts : CONST_INT {$$ = createIntegerDataFrame(yylval.ival);} /* both have same
 %%
 int main() { 
 	yyparse() ; 
-	exec_statements();
+	callFunction("main");
 	printf("Successful\n");
 }
 extern int yylineno;
