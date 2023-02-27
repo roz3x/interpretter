@@ -4,5 +4,5 @@ rm y.tab.c y.tab.h lex.yy.c
 rm ./a.out
 yacc -d y
 lex l 
-gcc-12 lex.yy.c y.tab.c  common.c #2>/dev/null
+gcc-12 lex.yy.c y.tab.c trie.c  common.c #2>/dev/null
 ./a.out < in

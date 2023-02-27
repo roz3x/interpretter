@@ -7,15 +7,16 @@
 %}
 
 %token INT FLOAT STRING ID OPENPR CLOSEPR OPENBR  CLOSEBR SEMICOLON 
-%token EQUALS CONST_INT CONST_STRING
+%token EQUALS CONST_INT CONST_STRING VARIABLE
+%token PLUS MINUS MUL DIV EXPR
 %start function_decl
 %union {
 	int ival; 
 	char* sval;
-}
+} 
 
 %type <sval> name function_decl CONST_STRING
-%type <ival> consts stmt CONST_INT statements
+%type <ival> consts stmt CONST_INT statements expr nc
 
 %%
 
@@ -32,21 +33,28 @@ type : INT
 statements :  { $$ = -1; }
 	| stmt SEMICOLON statements { appendStatements($1 , $3) ; $$ = $1 ; }
 
-stmt : /*could be nothing */        { $$ = makeUniqeStatement(-1 , NULL , NULL , NULL , 0); }
-	| type name                     { $$ = makeUniqeStatement(0 , $2 , NULL , NULL , 0); }
-	| type name EQUALS CONST_INT    { $$ = makeUniqeStatement(1 , $2 , NULL , NULL , $4); }
-	| type name EQUALS CONST_STRING { $$ = makeUniqeStatement(2 , $2 , NULL , $4 , 0); }
-	| name EQUALS name              { $$ = makeUniqeStatement(3 , $1 , $3 , NULL , 0); }
-	| name EQUALS CONST_INT         { $$ = makeUniqeStatement(4 , $1 , NULL , NULL , $3);}
-	| name EQUALS CONST_STRING      { $$ = makeUniqeStatement(5 , $1 , NULL , $3 , 0);}
+stmt : /*could be nothing */        { $$ = makeUniqeStatement(-1 ,NULL, 0); }
+	| type name                     { $$ = makeUniqeStatement(0 , $2 , 0); } /* this will give it garabage value ? */
+	| type name EQUALS nc           { $$ = makeUniqeStatement(1 , $2 , $4); }
+	| name EQUALS nc  		        { $$ = makeUniqeStatement(2 , $1 , $3);}
 
-consts : CONST_INT {$$ = yylval.ival;} /* change this */
-	| CONST_STRING {$$ = yylval.sval;}
+nc : name {$$ = createVariableFrame($1); } /*DONE:  make this so that we get index of datafram from name , need trie for this */
+	| consts {$$ = $1;}
+	| expr   {$$ = makeDataFrameFromExpr($1);} /* statements themselves will give ref for the eval frame */
+
+expr : nc PLUS nc {$$ = makeExpr($1 , PLUS, $3); }
+	| nc MINUS nc {$$ = makeExpr($1 , MINUS, $3); } 
+	| nc MUL nc   {$$ = makeExpr($1 , MUL , $3); }
+	| nc DIV nc   {$$ = makeExpr($1 , DIV , $3); }
+	| OPENPR expr CLOSEPR { $$ = $2; }
+
+consts : CONST_INT {$$ = createIntegerDataFrame(yylval.ival);} /* both have same format  */
+	| CONST_STRING {$$ = createStringDataFrame(yylval.sval);}
 %%
 int main() { 
 	yyparse() ; 
 	exec_statements();
-	printf("success\n");
+	printf("Successful\n");
 }
 extern int yylineno;
 extern char* yytext;
