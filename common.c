@@ -1,9 +1,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "common.h"
 #include "y.tab.h"
 #include "trie.h"
+
 
 struct statement stmts[MAX_STATEMENTS];
 int stmt_idx = 0; 
@@ -11,6 +13,35 @@ struct data dataframe[MAX_DATA];
 int data_idx = 0;
 struct expr exprframe[MAX_EXPR];
 int expr_idx = 0 ; 
+struct arg_list arglistframe[MAX_ARG_LIST];
+int arglist_idx = 0;
+struct function_call function_call_frame[MAX_FUNCTION_CALL];
+int function_call_index = 0 ; 
+
+int makeFunctionCallStatement(int function_call_idx) { 
+    stmts[stmt_idx] = (struct statement) {
+        .type = FUNCTION_CALL,
+        .name = function_call_frame[function_call_idx].name , 
+        .arg_list_idx = function_call_frame[function_call_idx].arg_list_idx,
+    };
+    return stmt_idx++;
+} 
+int makeFunctionCall(char* name , int arg_list_index) { 
+    function_call_frame[function_call_index] = (struct function_call) { 
+        .name  = name,
+        .arg_list_idx = arg_list_index,
+    };
+    return function_call_index++;
+}
+
+int makeArgList(int start_dataframe_index, int next_arg) { 
+    arglistframe[arglist_idx] = (struct arg_list) { 
+        .start_dataframe_index  = start_dataframe_index,
+        .next_arg = next_arg,
+    };
+    return arglist_idx++;
+}
+
 
 int makeIfStatement( int frame_index , int statement_index ) { 
     /* for if statements the the value of the check will be in frameIndex   */
@@ -58,7 +89,20 @@ int evaluateExprFrame(int idx) {
             return lhs/rhs; 
         case MUL : 
             return lhs * rhs; 
-        
+        case COMP: 
+            return lhs == rhs; 
+        case LT : 
+            return lhs < rhs; 
+        case GT : 
+            return lhs > rhs; 
+        case LTE : 
+            return lhs <= rhs; 
+        case GTE: 
+            return lhs >= rhs; 
+        case OR : 
+            return lhs || rhs; 
+        case AND: 
+            return lhs && rhs; 
     };
     return 0 ; 
 }
@@ -68,7 +112,7 @@ int evalueateDataFrame(int idx ) {
         case INT: 
             return dataframe[idx].int_value; 
         case VARIABLE: 
-            return get(dataframe[idx].variable_name); /* have to use trie here */
+            return (int)get(dataframe[idx].variable_name); /* have to use trie here */
         case EXPR: 
             return evaluateExprFrame(dataframe[idx].expr_frame_index);
     }
@@ -119,7 +163,7 @@ int makeDataFrameFromExpr(int expr_frame_index){  /* index of start of expr is g
 }
 
 void registerFunctionName(char* name , int start_statement_index) { 
-    insert(name , start_statement_index);
+    insert(name , (void*)start_statement_index);
 }
 
 void exec_statements(int start) { 
@@ -128,11 +172,16 @@ void exec_statements(int start) {
             int value = evalueateDataFrame(stmts[start].frame_index);
             insert(stmts[start].name , (void*)value); 
         }
+
         if (stmts[start].type == IF) { 
             int value = evalueateDataFrame(stmts[start].frame_index);
             if (value) { 
-                printf("getting here \n")   ;
                 exec_statements(stmts[start].statement_index);
+            }
+        }
+        if (stmts[start].type == FUNCTION_CALL) { 
+            if (!strcmp(stmts[start].name, "printf")) { 
+                
             }
         }
         start = stmts[start].next_stmt;

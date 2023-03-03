@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 /* we assign 0xFF values for
 each level of the trie */
@@ -10,14 +11,19 @@ struct trie {
     void *data; 
 }  T; 
 
+void init_trie() {
+    T.next = NULL; 
+}
+
 
 void _insert(char* key , void* value , struct trie *t , int len) { 
     if (len == 0 ) { 
         t->data = value; 
         return ; 
     }
+    assert(t != NULL);
     if (t->next == NULL) { 
-        t->next = (struct trie*) malloc(0xff * sizeof(struct trie)); 
+        t->next = (struct trie*) malloc(0xff * sizeof(struct trie));
         for (int i = 0 ;i < 0xFF; i++) { 
             t->next[i].next = t->next[i].data = NULL;
         }

@@ -2,6 +2,8 @@
 #define MAX_STATEMENTS 0xFFFF
 #define MAX_DATA  0xFFFF
 #define MAX_EXPR 0xFFFF
+#define MAX_FUNCTION_CALL 0xFFFF
+#define MAX_ARG_LIST
 #include "y.tab.h"
 
 
@@ -14,11 +16,21 @@ struct expr {
 struct data { 
     int type; 
     union { 
-        int int_value; 
-        char*  string_value;
+        int   int_value; 
+        char* string_value;
         char* variable_name; 
-        int expr_frame_index; 
+        int   expr_frame_index; 
     };
+};
+
+struct function_call { 
+    char* name; 
+    int arg_list_idx; 
+};
+
+struct arg_list { 
+    int start_dataframe_index;
+    int next_arg; 
 };
 
 struct statement { 
@@ -29,6 +41,7 @@ struct statement {
     
     /* statements inside the if block or for block */
     int statement_index; 
+    int arg_list_idx;
 };
 
 int makeUniqeStatement( int , char* , int);
