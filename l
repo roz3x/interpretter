@@ -19,6 +19,7 @@
 "/"       {return DIV; }
 "*"       {return MUL;}
 "if"      {return IF; }
+"else"    {return ELSE; }
 "=="      {return COMP;}
 ">"       {return GT;}
 "<"       {return LT;}

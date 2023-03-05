@@ -8,9 +8,9 @@
 
 %token INT FLOAT STRING ID OPENPR CLOSEPR OPENBR  CLOSEBR SEMICOLON 
 %token EQUALS CONST_INT CONST_STRING VARIABLE
-%token PLUS MINUS MUL DIV EXPR IF  COMMA
+%token PLUS MINUS MUL DIV EXPR IF  COMMA ELSE
 %token COMP LT GT GTE LTE OR AND FOR 
-%token FUNCTION_CALL FOR_STATEMENT
+%token FUNCTION_CALL FOR_STATEMENT  IF_ELSE
 %start function_decl
 %union {
 	int ival; 
@@ -40,6 +40,7 @@ stmt : /*could be nothing */             { $$ = makeUniqeStatement(-1 ,NULL, 0);
 	| type name EQUALS nc SEMICOLON      { $$ = makeUniqeStatement(1 , $2 , $4); }
 	| name EQUALS nc SEMICOLON	         { $$ = makeUniqeStatement(2 , $1 , $3);}
 	| IF OPENPR nc CLOSEPR OPENBR statements CLOSEBR       { $$ = makeIfStatement($3,$6); }
+	| IF OPENPR nc CLOSEPR OPENBR statements CLOSEBR ELSE OPENBR statements CLOSEBR      { $$ = makeIfElseStatement($3,$6 ,$10); }
 	| SEMICOLON                          { $$ = makeUniqeStatement(-1 , NULL , 0 ); /* dummy statement */}	
 	| function_call SEMICOLON			 { $$ = makeFunctionCallStatement($1); }
 	| FOR OPENPR expr SEMICOLON expr SEMICOLON expr CLOSEPR OPENBR statements CLOSEBR  { 

@@ -66,6 +66,16 @@ int makeIfStatement( int frame_index , int statement_index ) {
     return stmt_idx++; 
 }
 
+int makeIfElseStatement(int frame_index , int statement_index , int else_statement_index) { 
+    stmts[stmt_idx] = (struct statement) { 
+        .type = IF_ELSE , 
+        .frame_index = frame_index, 
+        .statement_index = statement_index , 
+        .else_statement_index = else_statement_index , 
+    }; 
+    return stmt_idx++;
+}
+
 int makeUniqeStatement(int type , char* name , 
 int frame_index ) { 
     stmts[stmt_idx] = (struct statement){
@@ -199,6 +209,15 @@ void exec_single_statement(int index) {
             exec_statements(stmts[index].statement_index);
         }
     }
+    if (stmts[index].type == IF_ELSE) {
+        // printf("index : %d type : %d\n",index, stmts[index].type); 
+        int value = evalueateDataFrame(stmts[index].frame_index) ; 
+        if (value ) { 
+            exec_statements(stmts[index].statement_index);
+        } else { 
+            exec_statements(stmts[index].else_statement_index);
+        }
+    }
     if (stmts[index].type == FUNCTION_CALL) { 
         if (!strcmp(stmts[index].name, "printf")) { 
             /* todo for now we only print the value of variable. */
@@ -233,6 +252,7 @@ void exec_statements(int start) {
         start = stmts[start].next_stmt;
     }
 }
+
 void callFunction(char*name ) { 
     int start = (int) get(name);
     exec_statements(start); 
