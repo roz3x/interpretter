@@ -5,4 +5,4 @@ rm ./a.out
 yacc -d y
 lex l 
 clang -g -O0  lex.yy.c y.tab.c trie.c  common.c #2>/dev/null
-./a.out < in
+./a.out < test.c
