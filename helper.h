@@ -19,6 +19,8 @@ void translate_input_string_to_c_string(char *a) {
                 case 'r':
                     buff[effective_a_size] = '\r';
                     break; 
+                case '\\':
+                    buff[effective_a_size] = '\\';
                 default: 
                     fprintf(stderr , "unrecognized escape sequence\n");
             }
