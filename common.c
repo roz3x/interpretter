@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "common.h"
+#include "helper.h"
 #include "y.tab.h"
 #include "trie.h"
 
@@ -18,6 +20,17 @@ int arglist_idx = 0;
 struct function_call function_call_frame[MAX_FUNCTION_CALL];
 int function_call_index = 0 ; 
 
+
+int makeForStatement(int firstForPart , int secondForPart , int thirdForPart , int middleStatements) { 
+    stmts[stmt_idx] = (struct statement){ 
+        .type = FOR_STATEMENT,
+        .first_for_part = firstForPart , 
+        .second_for_part = secondForPart, 
+        .third_for_part = thirdForPart,
+        .middle_statements = middleStatements,
+    };
+    return stmt_idx++;
+}
 int makeFunctionCallStatement(int function_call_idx) { 
     stmts[stmt_idx] = (struct statement) {
         .type = FUNCTION_CALL,
@@ -80,6 +93,7 @@ void appendStatements(int first , int second) {
 int evaluateExprFrame(int idx) { 
     int lhs = evalueateDataFrame(exprframe[idx].lhs_frame_index); 
     int rhs = evalueateDataFrame(exprframe[idx].rhs_frame_index);
+    struct data *variable;
     switch (exprframe[idx].op) { 
         case PLUS: 
             return lhs + rhs; 
@@ -103,6 +117,11 @@ int evaluateExprFrame(int idx) {
             return lhs || rhs; 
         case AND: 
             return lhs && rhs; 
+        case EQUALS: 
+            variable = &dataframe[exprframe[idx].lhs_frame_index]; 
+            assert(variable->type == VARIABLE); 
+            insert(variable->variable_name , (void*)rhs); 
+            return rhs; 
     };
     return 0 ; 
 }
@@ -130,8 +149,9 @@ int createIntegerDataFrame(int a) {
 int createStringDataFrame(char* a ) { 
     dataframe[data_idx] = (struct data){
         .type = STRING , 
-        .string_value = a,
+        .string_value = a + 1,
     };
+    a[strlen(a)-1] = '\0';
     return data_idx++; 
 }
 
@@ -166,29 +186,56 @@ void registerFunctionName(char* name , int start_statement_index) {
     insert(name , (void*)start_statement_index);
 }
 
-void exec_statements(int start) { 
-    while(start != -1 && start < stmt_idx  && start >= 0) { 
-        if (stmts[start].type == 1 || stmts[start].type == 2 ) { 
-            int value = evalueateDataFrame(stmts[start].frame_index);
-            insert(stmts[start].name , (void*)value); 
+
+void exec_single_statement(int index) { 
+    if (stmts[index].type == 1 || stmts[index].type == 2 ) { 
+        int value = evalueateDataFrame(stmts[index].frame_index);
+        insert(stmts[index].name , (void*)value); 
+    }
+
+    if (stmts[index].type == IF) { 
+        int value = evalueateDataFrame(stmts[index].frame_index);
+        if (value) { 
+            exec_statements(stmts[index].statement_index);
+        }
+    }
+    if (stmts[index].type == FUNCTION_CALL) { 
+        if (!strcmp(stmts[index].name, "printf")) { 
+            /* todo for now we only print the value of variable. */
+            /* simple implementation  */
+            int start = stmts[index].arg_list_idx;
+            while(start != -1) { 
+                if (dataframe[arglistframe[start].start_dataframe_index].type == VARIABLE) { 
+                    printf("%d" , (int)get(dataframe[arglistframe[start].start_dataframe_index].variable_name));
+                }  else if (dataframe[arglistframe[start].start_dataframe_index].type == STRING) {
+                    const char *temp_string = dataframe[arglistframe[start].start_dataframe_index].string_value;
+                    translate_input_string_to_c_string(temp_string); 
+                    printf(buff);
+                } else { 
+                    assert(0); 
+                }
+                start = arglistframe[start].next_arg;
+            }
+        }
+    }
+    if (stmts[index].type == FOR_STATEMENT) { 
+        evaluateExprFrame(stmts[index].first_for_part); 
+        while(evaluateExprFrame(stmts[index].second_for_part)) { 
+            exec_statements(stmts[index].middle_statements);
+            evaluateExprFrame(stmts[index].third_for_part); 
         }
 
-        if (stmts[start].type == IF) { 
-            int value = evalueateDataFrame(stmts[start].frame_index);
-            if (value) { 
-                exec_statements(stmts[start].statement_index);
-            }
-        }
-        if (stmts[start].type == FUNCTION_CALL) { 
-            if (!strcmp(stmts[start].name, "printf")) { 
-                
-            }
-        }
+    }
+}
+void exec_statements(int start) { 
+    while(start != -1 && start < stmt_idx  && start >= 0) { 
+        exec_single_statement(start); 
         start = stmts[start].next_stmt;
     }
 }
 void callFunction(char*name ) { 
     int start = (int) get(name);
     exec_statements(start); 
-    printf("a: %d\nb: %d\nc : %d\n", get("a"), get("b"), get("c"));  
+    // this was an old check , no need anymore
+    // printf("a: %d\nb: %d\nc : %d\n", get("a"), get("b"), get("c"));  
 }

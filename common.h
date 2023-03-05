@@ -3,7 +3,7 @@
 #define MAX_DATA  0xFFFF
 #define MAX_EXPR 0xFFFF
 #define MAX_FUNCTION_CALL 0xFFFF
-#define MAX_ARG_LIST
+#define MAX_ARG_LIST 0xFFFF
 #include "y.tab.h"
 
 
@@ -42,6 +42,11 @@ struct statement {
     /* statements inside the if block or for block */
     int statement_index; 
     int arg_list_idx;
+
+
+    /* for loop arguments */
+    int first_for_part , second_for_part, third_for_part; 
+    int middle_statements; 
 };
 
 int makeUniqeStatement( int , char* , int);

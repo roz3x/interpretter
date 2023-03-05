@@ -9,8 +9,8 @@
 %token INT FLOAT STRING ID OPENPR CLOSEPR OPENBR  CLOSEBR SEMICOLON 
 %token EQUALS CONST_INT CONST_STRING VARIABLE
 %token PLUS MINUS MUL DIV EXPR IF  COMMA
-%token COMP LT GT GTE LTE OR AND
-%token FUNCTION_CALL
+%token COMP LT GT GTE LTE OR AND FOR 
+%token FUNCTION_CALL FOR_STATEMENT
 %start function_decl
 %union {
 	int ival; 
@@ -42,6 +42,11 @@ stmt : /*could be nothing */             { $$ = makeUniqeStatement(-1 ,NULL, 0);
 	| IF OPENPR nc CLOSEPR OPENBR statements CLOSEBR       { $$ = makeIfStatement($3,$6); }
 	| SEMICOLON                          { $$ = makeUniqeStatement(-1 , NULL , 0 ); /* dummy statement */}	
 	| function_call SEMICOLON			 { $$ = makeFunctionCallStatement($1); }
+	| FOR OPENPR expr SEMICOLON expr SEMICOLON expr CLOSEPR OPENBR statements CLOSEBR  { 
+		$$ = makeForStatement($3, $5 , $7, $10 );
+	}
+
+
 
 nc : name {$$ = createVariableFrame($1); } /*DONE:  make this so that we get index of datafram from name , need trie for this */
 	| consts {$$ = $1;}
@@ -58,14 +63,15 @@ expr : nc PLUS nc {$$ = makeExpr($1 , PLUS, $3); }
 	| nc LTE nc   {$$ = makeExpr($1 , LTE , $3);}
 	| nc OR nc    {$$ = makeExpr($1 , OR , $3);}
 	| nc AND nc   {$$ = makeExpr($1 , AND , $3);}
+	| nc EQUALS nc{$$ = makeExpr($1, EQUALS , $3);}
 	| OPENPR expr CLOSEPR { $$ = $2; }
 
 consts : CONST_INT {$$ = createIntegerDataFrame(yylval.ival);} /* both have same format  */
 	| CONST_STRING {$$ = createStringDataFrame(yylval.sval);}
 
-arg_list : nc               { $$  = makeArgList($1 , -1); }
+arg_list :  { $$ = -1; }
+ 	| nc                    { $$  = makeArgList($1 , -1); }
 	| nc COMMA arg_list     { $$ = makeArgList($1 , $3);}
-	| 	                    { $$ = -1; }
 
 function_call: 
 	name OPENPR arg_list CLOSEPR { $$ = makeFunctionCall($1 , $3);}
@@ -74,6 +80,8 @@ int main() {
 	freopen("in", "r", stdin);
 	init_trie();
 	yyparse() ; 
+	printf("parsing is done!\n"); 
+	fflush(stdout); 
 	callFunction("main");
 	printf("Successful\n");
 }
