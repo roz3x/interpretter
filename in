@@ -1,24 +1,13 @@
 int main() { 
-    int a= 1;;;;;b=a;
-    a=b;
-    a=34+1;
-    int a;
-    int c = 88;
-    if (a + 4) {
-        a = 5; 
-        if (a - 1 ) { 
-            c  = 1;
-        }
-    }
-    a=c;
-    a = 676 + 78 + (66/8) - 5;
-
-    if ((a > 97) && (b == 1)) { 
-        a = 79;
-    } 
     for (i= 0; i < 10 ; i=i+1) { 
         for (j = 0 ; j < 10 ; j= j+1) { 
-            printf("0 ");
+            int t1 = 5 - i ; 
+            int t2 = 5 - j ; 
+            if (((t1 * t1) * (t2 * t2 )) < 10 ) { 
+                printf(".");
+            } else { 
+                printf(" ");
+            }
         }
         printf("\n");
     }
