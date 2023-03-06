@@ -47,6 +47,9 @@ struct statement {
     /* for loop arguments */
     int first_for_part , second_for_part, third_for_part; 
     int middle_statements; 
+
+    /* else statement */
+    int else_statement_index; 
 };
 
 int makeUniqeStatement( int , char* , int);
