@@ -5,7 +5,8 @@ Simple Interpretter for C , in C .
 features. 
 
 - [x] expression evaluation
-- [ ] IO
+- [X] IO
 - [X] IF statements
-- [ ] FOR loop
-- [ ] Functions
+- [X] FOR loop
+- [X] Functions
+- [ ] Arrays
