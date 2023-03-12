@@ -12,6 +12,7 @@
 ")"       {return CLOSEPR;}
 "{"       {return OPENBR;}
 "}"       {return CLOSEBR;}
+"++"      {return PLUSPLUS;}
 ";"       {return SEMICOLON;}
 "="       {return EQUALS;}
 "+"       {return PLUS; }

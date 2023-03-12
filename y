@@ -8,8 +8,8 @@
 
 %token INT FLOAT STRING ID OPENPR CLOSEPR OPENBR  CLOSEBR SEMICOLON 
 %token EQUALS CONST_INT CONST_STRING VARIABLE
-%token PLUS MINUS MUL DIV EXPR IF  COMMA ELSE
-%token COMP LT GT GTE LTE OR AND FOR 
+%token PLUS MINUS MUL DIV EXPR IF  COMMA ELSE PLUSPLUS
+%token COMP LT GT GTE LTE OR AND FOR  
 %token FUNCTION_CALL FOR_STATEMENT  IF_ELSE
 %start function_decl
 %union {
@@ -65,7 +65,9 @@ expr : nc PLUS nc {$$ = makeExpr($1 , PLUS, $3); }
 	| nc OR nc    {$$ = makeExpr($1 , OR , $3);}
 	| nc AND nc   {$$ = makeExpr($1 , AND , $3);}
 	| nc EQUALS nc{$$ = makeExpr($1, EQUALS , $3);}
+	| nc PLUSPLUS {$$ = makeExpr($1 , PLUSPLUS, -1);}
 	| OPENPR expr CLOSEPR { $$ = $2; }
+
 
 consts : CONST_INT {$$ = createIntegerDataFrame(yylval.ival);} /* both have same format  */
 	| CONST_STRING {$$ = createStringDataFrame(yylval.sval);}
@@ -78,13 +80,11 @@ function_call:
 	name OPENPR arg_list CLOSEPR { $$ = makeFunctionCall($1 , $3);}
 %%
 int main() { 
-	freopen("in", "r", stdin);
+	freopen("test.c", "r", stdin);
 	init_trie();
 	yyparse() ; 
-	printf("parsing is done!\n"); 
-	fflush(stdout); 
+	printf("parsing done!\n");
 	callFunction("main");
-	printf("Successful\n");
 }
 extern int yylineno;
 extern char* yytext;
