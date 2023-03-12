@@ -132,11 +132,17 @@ int evaluateExprFrame(int idx) {
             assert(variable->type == VARIABLE); 
             insert(variable->variable_name , (void*)rhs); 
             return rhs; 
+        case PLUSPLUS:
+            variable = &dataframe[exprframe[idx].lhs_frame_index];
+            assert(variable->type == VARIABLE);
+            insert(variable->variable_name, 
+                (int)(get(variable->variable_name))+ 1 );
     };
     return 0 ; 
 }
 
 int evalueateDataFrame(int idx ) { 
+    if (idx  == -1 ) return -1; 
     switch(dataframe[idx].type) { 
         case INT: 
             return dataframe[idx].int_value; 
