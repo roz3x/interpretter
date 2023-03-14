@@ -4,6 +4,7 @@
 #define MAX_EXPR 0xFFFF
 #define MAX_FUNCTION_CALL 0xFFFF
 #define MAX_ARG_LIST 0xFFFF
+#define MAX_FLATTEN_ARG_LIST_SIZE 0xFF
 #include "y.tab.h"
 
 
@@ -26,6 +27,8 @@ struct data {
 struct function_call { 
     char* name; 
     int arg_list_idx; 
+    int flatten_arg_list[MAX_FLATTEN_ARG_LIST_SIZE];
+    int flatten_arg_list_len; 
 };
 
 struct arg_list { 
@@ -50,6 +53,12 @@ struct statement {
 
     /* else statement */
     int else_statement_index; 
+
+
+    /* function calling flatten stuff */
+    int flatten_arg_list[MAX_FLATTEN_ARG_LIST_SIZE];
+    int flatten_arg_list_len; 
+    
 };
 
 int makeUniqeStatement( int , char* , int);

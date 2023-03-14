@@ -36,14 +36,37 @@ int makeFunctionCallStatement(int function_call_idx) {
         .type = FUNCTION_CALL,
         .name = function_call_frame[function_call_idx].name , 
         .arg_list_idx = function_call_frame[function_call_idx].arg_list_idx,
+        .flatten_arg_list_len = function_call_frame[function_call_idx].flatten_arg_list_len,
     };
+    memcpy(&(stmts[stmt_idx].flatten_arg_list), /* dest */
+           &(function_call_frame[function_call_idx].flatten_arg_list) ,  /* src*/
+            function_call_frame[function_call_idx].flatten_arg_list_len); /* len */
     return stmt_idx++;
 } 
+
+/* TODO: flatten this */
 int makeFunctionCall(char* name , int arg_list_index) { 
+    int start = arglist_idx; 
+    int len = 0 ; 
+    int temp_buffer[MAX_FLATTEN_ARG_LIST_SIZE];
+
+    while( start !=  -1){ 
+        int data_frame_index = arglistframe[start].start_dataframe_index;
+        temp_buffer[len++] = data_frame_index; 
+        start = arglistframe[start].next_arg; 
+    }
+
     function_call_frame[function_call_index] = (struct function_call) { 
         .name  = name,
         .arg_list_idx = arg_list_index,
+        .flatten_arg_list_len = len,
     };
+
+    /* memcpy basically */
+    for (int i = 0 ;i < len ;i++) { 
+        function_call_frame[function_call_index].flatten_arg_list[i] = temp_buffer[i]; 
+    }
+
     return function_call_index++;
 }
 
@@ -135,8 +158,10 @@ int evaluateExprFrame(int idx) {
         case PLUSPLUS:
             variable = &dataframe[exprframe[idx].lhs_frame_index];
             assert(variable->type == VARIABLE);
+            int res = (int)get(variable->variable_name);
             insert(variable->variable_name, 
-                (int)(get(variable->variable_name))+ 1 );
+                (void*)res + 1);
+                // 0);
     };
     return 0 ; 
 }
@@ -226,21 +251,23 @@ void exec_single_statement(int index) {
     }
     if (stmts[index].type == FUNCTION_CALL) { 
         if (!strcmp(stmts[index].name, "printf")) { 
+
+            printf("number of argument : %d\n ", stmts[index].flatten_arg_list_len);
             /* todo for now we only print the value of variable. */
             /* simple implementation  */
-            int start = stmts[index].arg_list_idx;
-            while(start != -1) { 
-                if (dataframe[arglistframe[start].start_dataframe_index].type == VARIABLE) { 
-                    printf("%d" , (int)get(dataframe[arglistframe[start].start_dataframe_index].variable_name));
-                }  else if (dataframe[arglistframe[start].start_dataframe_index].type == STRING) {
-                    const char *temp_string = dataframe[arglistframe[start].start_dataframe_index].string_value;
-                    translate_input_string_to_c_string(temp_string); 
-                    printf(buff);
-                } else { 
-                    assert(0); 
-                }
-                start = arglistframe[start].next_arg;
-            }
+            // int start = stmts[index].arg_list_idx;
+            // while(start != -1) { 
+            //     if (dataframe[arglistframe[start].start_dataframe_index].type == VARIABLE) { 
+            //         printf("%d" , (int)get(dataframe[arglistframe[start].start_dataframe_index].variable_name));
+            //     }  else if (dataframe[arglistframe[start].start_dataframe_index].type == STRING) {
+            //         const char *temp_string = dataframe[arglistframe[start].start_dataframe_index].string_value;
+            //         translate_input_string_to_c_string(temp_string); 
+            //         printf(buff);
+            //     } else { 
+            //         assert(0); 
+            //     }
+            //     start = arglistframe[start].next_arg;
+            // }
         }
     }
     if (stmts[index].type == FOR_STATEMENT) { 
